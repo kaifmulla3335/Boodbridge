@@ -1,0 +1,275 @@
+{% extends "base.html" %} {% block content %}
+<!-- Hero Section -->
+<section class="relative bg-gradient-to-r from-red-700 to-red-800 text-white">
+  <div class="absolute inset-0 bg-black opacity-20"></div>
+  <div class="relative max-w-7xl mx-auto py-20 px-4 sm:py-28 sm:px-6 lg:px-8">
+    <div class="max-w-3xl">
+      <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+        Save Lives Through <span class="text-red-200">Blood Donation</span>
+      </h1>
+      <p class="mt-6 text-lg text-red-100 max-w-2xl">
+        Join our community and help save lives. Whether you're a donor,
+        hospital, or blood bank - your contribution matters.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-4">
+        <a
+          href="{{ url_for('auth.register', user_type='donor') }}"
+          class="inline-flex items-center px-6 py-3 border-2 border-white text-base font-semibold rounded-lg text-red-700 bg-white hover:bg-red-50 transition-all duration-200"
+        >
+          <i class="fas fa-hand-holding-heart mr-2"></i>Become a Donor
+        </a>
+        <a
+          href="{{ url_for('auth.register', user_type='hospital') }}"
+          class="inline-flex items-center px-6 py-3 border-2 border-white text-base font-semibold rounded-lg text-white hover:bg-white hover:text-red-700 transition-all duration-200"
+        >
+          <i class="fas fa-hospital mr-2"></i>Register as Hospital
+        </a>
+        <a
+          href="{{ url_for('auth.register', user_type='blood_bank') }}"
+          class="inline-flex items-center px-6 py-3 border-2 border-white text-base font-semibold rounded-lg text-white hover:bg-white hover:text-red-700 transition-all duration-200"
+        >
+          <i class="fas fa-building mr-2"></i>Register as Blood Bank
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Stats Section -->
+<section class="bg-white py-12 border-b border-gray-100">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+      <div class="text-center">
+        <div class="text-3xl font-bold text-red-600">5000+</div>
+        <div class="text-sm text-gray-500 mt-1">Lives Saved</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold text-red-600">2000+</div>
+        <div class="text-sm text-gray-500 mt-1">Active Donors</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold text-red-600">50+</div>
+        <div class="text-sm text-gray-500 mt-1">Partner Hospitals</div>
+      </div>
+      <div class="text-center">
+        <div class="text-3xl font-bold text-red-600">100+</div>
+        <div class="text-sm text-gray-500 mt-1">Blood Drives</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Urgent Blood Requests Section -->
+<section class="py-12 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Critical Blood Needs</h2>
+        <p class="text-gray-500 mt-1">Require immediate attention</p>
+      </div>
+      <a
+        href="{{ url_for('main.emergency_requests') }}"
+        class="text-red-600 hover:text-red-700 text-sm font-medium"
+      >
+        View All →
+      </a>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {% for request in urgent_requests %}
+      <div
+        class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-red-500 hover:shadow-lg transition-shadow duration-200"
+      >
+        <div class="p-5">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">
+                {{ request.hospital.hospital_name if request.hospital else
+                request.requester.first_name + ' ' + request.requester.last_name
+                if request.requester else 'Hospital' }}
+              </p>
+              <span
+                class="inline-block mt-1 px-2 py-0.5 text-xs font-bold rounded-full {% if request.priority == 'CRITICAL' %}bg-red-100 text-red-700{% elif request.priority == 'HIGH' %}bg-orange-100 text-orange-700{% else %}bg-yellow-100 text-yellow-700{% endif %}"
+              >
+                {{ request.priority }}
+              </span>
+            </div>
+            <i class="fas fa-tint text-red-400 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900">
+            {{ request.blood_type }} Blood Needed
+          </h3>
+          <div class="mt-3 flex justify-between items-center">
+            <span class="text-2xl font-bold text-red-600"
+              >{{ request.units_needed }} Units</span
+            >
+            <a
+              href="{{ url_for('main.emergency_requests') }}"
+              class="text-red-600 hover:text-red-700 text-sm font-medium"
+            >
+              Respond →
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-span-full text-center py-8 bg-white rounded-lg">
+        <i class="fas fa-check-circle text-green-500 text-4xl mb-2"></i>
+        <p class="text-gray-500">No urgent blood requests at the moment.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Upcoming Blood Drives Section -->
+<section class="py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center mb-8">
+      <div>
+        <h2 class="text-2xl font-bold text-gray-900">Upcoming Blood Drives</h2>
+        <p class="text-gray-500 mt-1">
+          Join us at these upcoming blood donation events
+        </p>
+      </div>
+      <a
+        href="{{ url_for('main.blood_drives') }}"
+        class="text-red-600 hover:text-red-700 text-sm font-medium"
+      >
+        View All →
+      </a>
+    </div>
+
+    <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {% for drive in upcoming_drives %}
+      <div
+        class="bg-white rounded-lg shadow-md overflow-hidden border-l-4 border-red-500 hover:shadow-lg transition-shadow duration-200"
+      >
+        <div class="p-5">
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <p class="text-sm font-semibold text-gray-800">
+                {{ drive.location }}
+              </p>
+              <span
+                class="inline-block mt-1 px-2 py-0.5 text-xs font-bold rounded-full bg-green-100 text-green-700"
+              >
+                <i class="far fa-calendar-alt mr-1"></i>{{
+                drive.start_date.strftime('%B %d, %Y') }}
+              </span>
+            </div>
+            <i class="fas fa-hand-holding-heart text-red-400 text-xl"></i>
+          </div>
+          <h3 class="text-xl font-bold text-gray-900">{{ drive.title }}</h3>
+          <div class="mt-2 flex items-center text-sm text-gray-500">
+            <i class="fas fa-clock text-red-400 mr-2"></i>
+            {{ drive.start_date.strftime('%I:%M %p') }}
+          </div>
+          <div class="mt-3 flex justify-between items-center">
+            <div class="flex items-center">
+              <i class="fas fa-users text-red-400 mr-2"></i>
+              <span class="text-sm text-gray-600"
+                >{{ drive.registrations|length if drive.registrations else 0 }}
+                registered</span
+              >
+            </div>
+            <a
+              href="{{ url_for('main.blood_drive_detail', id=drive.id) }}"
+              class="text-red-600 hover:text-red-700 text-sm font-medium"
+            >
+              View Details →
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-span-full text-center py-8 bg-gray-50 rounded-lg">
+        <i class="fas fa-calendar-times text-gray-400 text-4xl mb-2"></i>
+        <p class="text-gray-500">No upcoming blood drives scheduled.</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- How It Works Section -->
+<section class="py-12 bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-10">
+      <h2 class="text-2xl font-bold text-gray-900">How It Works</h2>
+      <p class="text-gray-500 mt-1">
+        The process of donating blood is simple and safe
+      </p>
+    </div>
+
+    <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+      <div class="text-center">
+        <div
+          class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"
+        >
+          <i class="fas fa-user-plus text-red-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-gray-900">1. Register</h3>
+        <p class="text-sm text-gray-500 mt-1">Create your account</p>
+      </div>
+      <div class="text-center">
+        <div
+          class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"
+        >
+          <i class="fas fa-calendar-alt text-red-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-gray-900">2. Schedule</h3>
+        <p class="text-sm text-gray-500 mt-1">Find a blood drive</p>
+      </div>
+      <div class="text-center">
+        <div
+          class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"
+        >
+          <i class="fas fa-hand-holding-heart text-red-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-gray-900">3. Donate</h3>
+        <p class="text-sm text-gray-500 mt-1">Give blood safely</p>
+      </div>
+      <div class="text-center">
+        <div
+          class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3"
+        >
+          <i class="fas fa-chart-line text-red-600 text-xl"></i>
+        </div>
+        <h3 class="font-semibold text-gray-900">4. Track</h3>
+        <p class="text-sm text-gray-500 mt-1">View your impact</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Call to Action -->
+<section class="py-12 bg-gradient-to-r from-red-700 to-red-800">
+  <div class="max-w-4xl mx-auto text-center px-4">
+    <h2 class="text-2xl font-bold text-white">Ready to make a difference?</h2>
+    <p class="mt-2 text-red-100">
+      Join our community of donors and help save lives today.
+    </p>
+    <div class="mt-5 flex flex-wrap justify-center gap-4">
+      <a
+        href="{{ url_for('auth.register', user_type='donor') }}"
+        class="inline-flex items-center px-6 py-2.5 border-2 border-white text-base font-semibold rounded-lg text-red-700 bg-white hover:bg-red-50 transition-all duration-200"
+      >
+        <i class="fas fa-hand-holding-heart mr-2"></i>Donor
+      </a>
+      <a
+        href="{{ url_for('auth.register', user_type='hospital') }}"
+        class="inline-flex items-center px-6 py-2.5 border-2 border-white text-base font-semibold rounded-lg text-white hover:bg-white hover:text-red-700 transition-all duration-200"
+      >
+        <i class="fas fa-hospital mr-2"></i>Hospital
+      </a>
+      <a
+        href="{{ url_for('auth.register', user_type='blood_bank') }}"
+        class="inline-flex items-center px-6 py-2.5 border-2 border-white text-base font-semibold rounded-lg text-white hover:bg-white hover:text-red-700 transition-all duration-200"
+      >
+        <i class="fas fa-building mr-2"></i>Blood Bank
+      </a>
+    </div>
+  </div>
+</section>
+{% endblock %}

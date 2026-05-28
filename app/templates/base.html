@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+      {% block title %}LifeLink - Blood Donation Management System{% endblock %}
+    </title>
+    <!-- TailwindCSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Alpine.js -->
+    <script
+      defer
+      src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <!-- Font Awesome -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <style>
+      [x-cloak] {
+        display: none !important;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #c53030;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #9b2c2c;
+      }
+
+      .card-hover {
+        transition:
+          transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+    </style>
+    {% block extra_css %}{% endblock %}
+  </head>
+  <body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav
+      class="bg-white shadow-sm sticky top-0 z-50"
+      x-data="{ mobileMenuOpen: false }"
+    >
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex justify-between h-16">
+          <!-- Logo -->
+          <div class="flex items-center">
+            <a
+              href="{{ url_for('main.index') }}"
+              class="text-2xl font-bold text-red-600"
+            >
+              <i class="fas fa-heartbeat mr-2"></i>LifeLink
+            </a>
+          </div>
+
+          <!-- Desktop Navigation -->
+          <div class="hidden md:flex items-center space-x-6">
+            <a
+              href="{{ url_for('main.index') }}"
+              class="{% if request.endpoint == 'main.index' %}text-red-600 border-b-2 border-red-600{% else %}text-gray-600 hover:text-red-600{% endif %} px-1 py-5 text-sm font-medium"
+            >
+              Home
+            </a>
+            <a
+              href="{{ url_for('main.blood_inventory') }}"
+              class="{% if request.endpoint == 'main.blood_inventory' %}text-red-600 border-b-2 border-red-600{% else %}text-gray-600 hover:text-red-600{% endif %} px-1 py-5 text-sm font-medium"
+            >
+              Blood Inventory
+            </a>
+            <a
+              href="{{ url_for('main.blood_drives') }}"
+              class="{% if request.endpoint == 'main.blood_drives' %}text-red-600 border-b-2 border-red-600{% else %}text-gray-600 hover:text-red-600{% endif %} px-1 py-5 text-sm font-medium"
+            >
+              Blood Drives
+            </a>
+            {% if current_user.is_authenticated %}
+            <a
+              href="{{ url_for('main.emergency_requests') }}"
+              class="{% if request.endpoint == 'main.emergency_requests' %}text-red-600 border-b-2 border-red-600{% else %}text-gray-600 hover:text-red-600{% endif %} px-1 py-5 text-sm font-medium"
+            >
+              Emergency
+            </a>
+            {% endif %} {% if not current_user.is_authenticated or
+            current_user.user_type != 'admin' %}
+            <a
+              href="{{ url_for('main.about') }}"
+              class="{% if request.endpoint == 'main.about' %}text-red-600 border-b-2 border-red-600{% else %}text-gray-600 hover:text-red-600{% endif %} px-1 py-5 text-sm font-medium"
+            >
+              About
+            </a>
+            <a
+              href="{{ url_for('main.contact') }}"
+              class="{% if request.endpoint == 'main.contact' %}text-red-600 border-b-2 border-red-600{% else %}text-gray-600 hover:text-red-600{% endif %} px-1 py-5 text-sm font-medium"
+            >
+              Contact
+            </a>
+            {% endif %} {% if current_user.is_authenticated and
+            current_user.user_type == 'donor' %}
+            <a
+              href="{{ url_for('main.donate') }}"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+            >
+              Donate
+            </a>
+            {% endif %} {% if current_user.is_authenticated and
+            current_user.user_type == 'admin' %}
+            <a
+              href="{{ url_for('admin.dashboard') }}"
+              class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700"
+            >
+              Dashboard
+            </a>
+            {% endif %}
+          </div>
+
+          <!-- User Menu / Auth Buttons with Dropdown - FIXED: Shows proper name for hospital/blood bank -->
+          <div class="hidden md:flex items-center space-x-4">
+            {% if current_user.is_authenticated %}
+            <div
+              x-data="{ open: false }"
+              @click.away="open = false"
+              class="relative"
+            >
+              <button
+                @click="open = !open"
+                class="flex items-center space-x-2 text-sm focus:outline-none"
+              >
+                <img
+                  class="h-8 w-8 rounded-full object-cover"
+                  src="https://ui-avatars.com/api/?name={% if current_user.user_type == 'hospital' %}{{ current_user.hospital_name }}{% elif current_user.user_type == 'blood_bank' %}{{ current_user.bank_name }}{% else %}{{ current_user.first_name }}+{{ current_user.last_name }}{% endif %}&background=dc2626&color=fff"
+                  alt="Profile"
+                />
+                <span class="text-gray-700">
+                  {% if current_user.user_type == 'hospital' %} {{
+                  current_user.hospital_name }} {% elif current_user.user_type
+                  == 'blood_bank' %} {{ current_user.bank_name }} {% else %} {{
+                  current_user.first_name }} {{ current_user.last_name }} {%
+                  endif %}
+                </span>
+                <i class="fas fa-chevron-down text-gray-400 text-xs"></i>
+              </button>
+              <div
+                x-show="open"
+                x-cloak
+                class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-50 border"
+              >
+                <a
+                  href="{{ url_for('main.dashboard') }}"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >Dashboard</a
+                >
+                <a
+                  href="{{ url_for('auth.logout') }}"
+                  class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                  >Logout</a
+                >
+              </div>
+            </div>
+            {% else %}
+            <a
+              href="{{ url_for('auth.login') }}"
+              class="text-gray-600 hover:text-red-600 text-sm font-medium"
+              >Sign In</a
+            >
+
+            <!-- Register Dropdown -->
+            <div class="relative group">
+              <button
+                class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors duration-200 inline-flex items-center"
+              >
+                Register <i class="fas fa-chevron-down ml-2"></i>
+              </button>
+              <div
+                class="absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50"
+              >
+                <div class="py-2">
+                  <a
+                    href="{{ url_for('auth.register', user_type='donor') }}"
+                    class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  >
+                    <div
+                      class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-user-plus text-red-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="font-semibold">Donor</p>
+                      <p class="text-xs text-gray-500">
+                        Donate blood and save lives
+                      </p>
+                    </div>
+                  </a>
+                  <a
+                    href="{{ url_for('auth.register', user_type='hospital') }}"
+                    class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  >
+                    <div
+                      class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-hospital text-blue-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="font-semibold">Hospital</p>
+                      <p class="text-xs text-gray-500">
+                        Request blood for patients
+                      </p>
+                    </div>
+                  </a>
+                  <a
+                    href="{{ url_for('auth.register', user_type='blood_bank') }}"
+                    class="flex items-center px-4 py-3 text-sm text-gray-700 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  >
+                    <div
+                      class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center mr-3"
+                    >
+                      <i class="fas fa-building text-purple-600 text-sm"></i>
+                    </div>
+                    <div>
+                      <p class="font-semibold">Blood Bank</p>
+                      <p class="text-xs text-gray-500">
+                        Manage blood inventory
+                      </p>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Mobile menu button -->
+          <div class="flex items-center md:hidden">
+            <button
+              @click="mobileMenuOpen = !mobileMenuOpen"
+              class="text-gray-500 hover:text-gray-700"
+            >
+              <i class="fas fa-bars text-xl" x-show="!mobileMenuOpen"></i>
+              <i
+                class="fas fa-times text-xl"
+                x-show="mobileMenuOpen"
+                x-cloak
+              ></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mobile menu -->
+      <div x-show="mobileMenuOpen" x-cloak class="md:hidden border-t bg-white">
+        <div class="px-2 pt-2 pb-3 space-y-1">
+          <a
+            href="{{ url_for('main.index') }}"
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md"
+            >Home</a
+          >
+          <a
+            href="{{ url_for('main.blood_inventory') }}"
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md"
+            >Blood Inventory</a
+          >
+          <a
+            href="{{ url_for('main.blood_drives') }}"
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md"
+            >Blood Drives</a
+          >
+          {% if current_user.is_authenticated %}
+          <a
+            href="{{ url_for('main.emergency_requests') }}"
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md"
+            >Emergency</a
+          >
+          {% endif %} {% if not current_user.is_authenticated or
+          current_user.user_type != 'admin' %}
+          <a
+            href="{{ url_for('main.about') }}"
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md"
+            >About</a
+          >
+          <a
+            href="{{ url_for('main.contact') }}"
+            class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600 hover:bg-red-50 rounded-md"
+            >Contact</a
+          >
+          {% endif %} {% if current_user.is_authenticated and
+          current_user.user_type == 'donor' %}
+          <a
+            href="{{ url_for('main.donate') }}"
+            class="block px-3 py-2 text-base font-medium text-white bg-red-600 rounded-md"
+            >Donate</a
+          >
+          {% endif %} {% if current_user.is_authenticated %}
+          <div class="pt-4 border-t mt-4">
+            <div class="flex items-center px-3 py-2">
+              <img
+                class="h-10 w-10 rounded-full object-cover"
+                src="https://ui-avatars.com/api/?name={% if current_user.user_type == 'hospital' %}{{ current_user.hospital_name }}{% elif current_user.user_type == 'blood_bank' %}{{ current_user.bank_name }}{% else %}{{ current_user.first_name }}+{{ current_user.last_name }}{% endif %}&background=dc2626&color=fff"
+                alt="Profile"
+              />
+              <div class="ml-3">
+                <div class="text-base font-medium text-gray-800">
+                  {% if current_user.user_type == 'hospital' %} {{
+                  current_user.hospital_name }} {% elif current_user.user_type
+                  == 'blood_bank' %} {{ current_user.bank_name }} {% else %} {{
+                  current_user.first_name }} {{ current_user.last_name }} {%
+                  endif %}
+                </div>
+                <div class="text-sm text-gray-500">
+                  {{ current_user.email }}
+                </div>
+              </div>
+            </div>
+            <a
+              href="{{ url_for('main.dashboard') }}"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+              >Dashboard</a
+            >
+            <a
+              href="{{ url_for('auth.logout') }}"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:bg-gray-100 rounded-md"
+              >Logout</a
+            >
+          </div>
+          {% endif %} {% if not current_user.is_authenticated %}
+          <div class="pt-4 border-t mt-4">
+            <a
+              href="{{ url_for('auth.login') }}"
+              class="block px-3 py-2 text-base font-medium text-gray-700 hover:text-red-600"
+              >Sign In</a
+            >
+            <a
+              href="{{ url_for('auth.register', user_type='donor') }}"
+              class="block px-3 py-2 text-base font-medium text-white bg-red-600 rounded-md text-center mt-2"
+              >Register as Donor</a
+            >
+            <a
+              href="{{ url_for('auth.register', user_type='hospital') }}"
+              class="block px-3 py-2 text-base font-medium text-white bg-blue-600 rounded-md text-center mt-2"
+              >Register as Hospital</a
+            >
+            <a
+              href="{{ url_for('auth.register', user_type='blood_bank') }}"
+              class="block px-3 py-2 text-base font-medium text-white bg-purple-600 rounded-md text-center mt-2"
+              >Register as Blood Bank</a
+            >
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-4">
+      {% for category, message in messages %}
+      <div
+        class="rounded-lg p-4 mb-3 {% if category == 'error' %}bg-red-50 text-red-700 border-l-4 border-red-500{% else %}bg-green-50 text-green-700 border-l-4 border-green-500{% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <!-- Main content -->
+    <main>{% block content %}{% endblock %}</main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-gray-300 mt-16">
+      <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-center">
+          <div class="flex items-center mb-4 md:mb-0">
+            <i class="fas fa-heartbeat text-red-400 text-xl mr-2"></i>
+            <span class="text-lg font-bold text-white">LifeLink</span>
+          </div>
+          <div class="flex space-x-6">
+            <a href="#" class="hover:text-white transition-colors"
+              ><i class="fab fa-facebook"></i
+            ></a>
+            <a href="#" class="hover:text-white transition-colors"
+              ><i class="fab fa-twitter"></i
+            ></a>
+            <a href="#" class="hover:text-white transition-colors"
+              ><i class="fab fa-instagram"></i
+            ></a>
+            <a href="#" class="hover:text-white transition-colors"
+              ><i class="fab fa-linkedin"></i
+            ></a>
+          </div>
+          <p class="text-sm text-gray-400 mt-4 md:mt-0">
+            &copy; 2026 LifeLink. All rights reserved.
+          </p>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

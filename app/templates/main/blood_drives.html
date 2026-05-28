@@ -1,0 +1,154 @@
+{% extends "base.html" %} {% block content %}
+<section class="py-12">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900">Blood Drives</h1>
+      <p class="text-gray-500 mt-1">
+        Find and register for blood drives in your area
+      </p>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="bg-white rounded-lg shadow-sm border p-4 mb-8">
+      <div class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <div class="relative">
+            <i
+              class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
+            ></i>
+            <input
+              type="text"
+              placeholder="Search blood drives..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+        </div>
+        <div class="flex gap-4">
+          <select
+            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          >
+            <option>All Locations</option>
+            <option>New York</option>
+            <option>Los Angeles</option>
+            <option>Chicago</option>
+          </select>
+          <select
+            class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+          >
+            <option>All Status</option>
+            <option>Upcoming</option>
+            <option>Running</option>
+            <option>Completed</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Blood Drives Grid -->
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      {% for drive in drives.items %}
+      <div
+        class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-200"
+      >
+        <!-- Card Header -->
+        <div class="relative h-28 bg-gradient-to-r from-red-600 to-red-700">
+          <div
+            class="absolute bottom-0 left-0 right-0 bg-white px-4 py-2 rounded-t-lg mx-3 mb-2 shadow-sm"
+          >
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-semibold text-red-600">
+                <i class="far fa-calendar-alt mr-1"></i>{{
+                drive.start_date.strftime('%B %d, %Y') }}
+              </span>
+              <span class="text-xs text-gray-500">
+                <i class="far fa-clock mr-1"></i>{{
+                drive.start_date.strftime('%I:%M %p') }}
+              </span>
+            </div>
+          </div>
+          <div class="absolute top-3 right-3">
+            <span
+              class="px-2 py-1 text-xs font-semibold rounded-full {% if drive.status == 'scheduled' %}bg-green-500 text-white {% elif drive.status == 'running' %}bg-yellow-500 text-white {% else %}bg-gray-500 text-white{% endif %}"
+            >
+              {% if drive.status == 'scheduled' %}Upcoming {% elif drive.status
+              == 'running' %}Running {% else %}Completed{% endif %}
+            </span>
+          </div>
+        </div>
+        <!-- Card Body -->
+        <div class="p-5">
+          <h3 class="text-lg font-bold text-gray-900 mb-2">
+            {{ drive.title }}
+          </h3>
+          <div class="flex items-center text-sm text-gray-500 mb-3">
+            <i class="fas fa-map-marker-alt text-red-500 w-4 mr-2"></i>
+            {{ drive.location }}
+          </div>
+          <div class="flex items-center justify-between mt-4">
+            <div class="flex items-center text-sm text-gray-500">
+              <i class="fas fa-users text-red-500 mr-2"></i>
+              <span>{{ drive.registrations|length }} registered</span>
+            </div>
+            <a
+              href="{{ url_for('main.blood_drive_detail', id=drive.id) }}"
+              class="inline-flex items-center text-red-600 hover:text-red-700 text-sm font-medium"
+            >
+              View Details →
+            </a>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="col-span-full text-center py-12 bg-gray-50 rounded-lg">
+        <i class="fas fa-calendar-times text-gray-400 text-5xl mb-3"></i>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">
+          No blood drives found
+        </h3>
+        <p class="text-gray-500">
+          Check back later for upcoming blood drives in your area.
+        </p>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if drives.pages > 1 %}
+    <div class="mt-10 flex justify-center">
+      <nav class="flex items-center space-x-2">
+        {% if drives.has_prev %}
+        <a
+          href="{{ url_for('main.blood_drives', page=drives.prev_num) }}"
+          class="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-red-50 hover:border-red-300 transition-colors"
+        >
+          <i class="fas fa-chevron-left"></i>
+        </a>
+        {% endif %} {% for page_num in drives.iter_pages(left_edge=2,
+        left_current=2, right_current=3, right_edge=2) %} {% if page_num %} {%
+        if page_num == drives.page %}
+        <span class="px-4 py-2 rounded-lg bg-red-600 text-white"
+          >{{ page_num }}</span
+        >
+        {% else %}
+        <a
+          href="{{ url_for('main.blood_drives', page=page_num) }}"
+          class="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-red-50 hover:border-red-300 transition-colors"
+        >
+          {{ page_num }}
+        </a>
+        {% endif %} {% else %}
+        <span class="px-2 text-gray-400">...</span>
+        {% endif %} {% endfor %} {% if drives.has_next %}
+        <a
+          href="{{ url_for('main.blood_drives', page=drives.next_num) }}"
+          class="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-red-50 hover:border-red-300 transition-colors"
+        >
+          <i class="fas fa-chevron-right"></i>
+        </a>
+        {% endif %}
+      </nav>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,371 @@
+{% extends "base.html" %} 
+
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block content %}
+<div class="bg-gradient-to-br from-gray-50 to-white min-h-screen py-8">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-gray-900">
+            Admin <span class="text-red-600">Dashboard</span>
+          </h1>
+          <p class="text-gray-500 mt-1">
+            Manage blood requests, donations, and blood drives
+          </p>
+        </div>
+        <div class="mt-4 md:mt-0">
+          <a
+            href="{{ url_for('admin.schedule_drive') }}"
+            class="inline-flex items-center px-5 py-2.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 shadow-md hover:shadow-lg"
+          >
+            <i class="fas fa-plus-circle mr-2"></i>
+            Schedule Blood Drive
+          </a>
+        </div>
+      </div>
+      <div class="mt-4 h-1 w-20 bg-red-600 rounded-full"></div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
+      <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-yellow-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Pending Requests</p>
+            <p class="text-2xl font-bold text-gray-800">{{ pending_requests|length }}</p>
+          </div>
+          <div class="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-clock text-yellow-600"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-red-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Active Emergency</p>
+            <p class="text-2xl font-bold text-gray-800">{{ active_requests|length }}</p>
+          </div>
+          <div class="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-exclamation-triangle text-red-600"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Pending Donations</p>
+            <p class="text-2xl font-bold text-gray-800">{{ pending_donations|length }}</p>
+          </div>
+          <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-hand-holding-heart text-blue-600"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-green-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Total Donors</p>
+            <p class="text-2xl font-bold text-gray-800">{{ total_donors }}</p>
+          </div>
+          <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-users text-green-600"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-white rounded-xl shadow-md p-5 border-l-4 border-purple-500">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-gray-500 text-sm">Blood Drives</p>
+            <p class="text-2xl font-bold text-gray-800">{{ blood_drives|length }}</p>
+          </div>
+          <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+            <i class="fas fa-calendar-alt text-purple-600"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIVE EMERGENCY REQUESTS SECTION (Visible on Landing Page) -->
+    <div class="bg-white rounded-xl shadow-md overflow-hidden mb-6">
+      <div class="bg-gradient-to-r from-red-600 to-red-700 px-6 py-4">
+        <h2 class="text-lg font-semibold text-white">
+          <i class="fas fa-exclamation-triangle mr-2"></i>Active Emergency Requests
+          <span class="ml-2 text-sm font-normal">(Visible to public on landing page)</span>
+          {% if active_requests %}
+          <span class="ml-2 px-2 py-0.5 text-xs bg-white text-red-600 rounded-full">{{ active_requests|length }}</span>
+          {% endif %}
+        </h2>
+      </div>
+      <div class="p-5">
+        {% if active_requests %}
+          <div class="space-y-4">
+            {% for request in active_requests %}
+            <div class="border-2 border-red-200 rounded-lg p-4 bg-red-50 hover:shadow-md transition-shadow">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="flex items-center gap-3 mb-2">
+                    <span class="px-2 py-1 text-xs font-bold rounded-full bg-red-600 text-white animate-pulse">
+                      URGENT
+                    </span>
+                    <span class="px-2 py-1 text-xs rounded-full 
+                      {% if request.priority == 'CRITICAL' %}bg-red-200 text-red-800
+                      {% elif request.priority == 'HIGH' %}bg-orange-200 text-orange-800
+                      {% else %}bg-yellow-200 text-yellow-800{% endif %}">
+                      {{ request.priority }}
+                    </span>
+                  </div>
+                  <p class="font-semibold text-gray-800">
+                    {% if request.hospital %}
+                      {{ request.hospital.hospital_name }}
+                    {% else %}
+                      Requester #{{ request.requester_id }}
+                    {% endif %}
+                  </p>
+                  <p class="text-lg font-bold text-red-600 mt-1">
+                    {{ request.units_needed }} units of {{ request.blood_type }} Blood
+                  </p>
+                  <div class="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                    <span><i class="far fa-calendar-alt mr-1"></i>Deadline: {{ request.deadline.strftime('%b %d, %Y at %I:%M %p') }}</span>
+                    <span><i class="fas fa-clock mr-1"></i>Requested: {{ request.created_at.strftime('%b %d, %Y') }}</span>
+                  </div>
+                  <p class="mt-2 text-sm text-gray-700 bg-white p-2 rounded">
+                    <i class="fas fa-user-injured text-red-500 mr-1"></i>
+                    {{ request.patient_details }}
+                  </p>
+                </div>
+              </div>
+              
+              <!-- Admin Action Form for Active Requests -->
+              <form method="POST" class="mt-4 pt-3 border-t border-red-200">
+                <textarea name="admin_notes" rows="2" 
+                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500"
+                          placeholder="Add notes about fulfillment..."></textarea>
+                <div class="flex space-x-3 mt-3">
+                  <button type="submit" 
+                          formaction="{{ url_for('admin.manage_blood_request', request_id=request.id, action='fulfill') }}"
+                          class="px-5 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-medium">
+                    <i class="fas fa-check-circle mr-1"></i>Mark as Fulfilled
+                  </button>
+                  <button type="submit" 
+                          formaction="{{ url_for('admin.manage_blood_request', request_id=request.id, action='reject') }}"
+                          class="px-5 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                    <i class="fas fa-times-circle mr-1"></i>Reject
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-12">
+            <div class="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <i class="fas fa-check-circle text-green-500 text-3xl"></i>
+            </div>
+            <p class="text-gray-500 text-lg">No active emergency requests</p>
+            <p class="text-sm text-gray-400">All emergency requests have been fulfilled</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <!-- Pending Blood Requests -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-yellow-500 to-yellow-600 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">
+            <i class="fas fa-tint mr-2"></i>Pending Blood Requests
+            {% if pending_requests %}
+            <span class="ml-2 px-2 py-0.5 text-xs bg-white text-yellow-600 rounded-full">{{ pending_requests|length }}</span>
+            {% endif %}
+          </h2>
+        </div>
+        <div class="p-5">
+          {% if pending_requests %}
+          <div class="space-y-4">
+            {% for request in pending_requests %}
+            <div class="border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-semibold text-gray-800">
+                    {% if request.hospital %} {{ request.hospital.hospital_name }} {% else %} Hospital #{{ request.hospital_id }} {% endif %}
+                  </p>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ request.units_needed }} units of <span class="font-bold text-red-600">{{ request.blood_type }}</span>
+                  </p>
+                  <div class="flex items-center mt-2 space-x-2">
+                    <span class="px-2 py-0.5 text-xs rounded-full 
+                      {% if request.priority == 'CRITICAL' %}bg-red-100 text-red-700 
+                      {% elif request.priority == 'HIGH' %}bg-orange-100 text-orange-700 
+                      {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                      {{ request.priority }}
+                    </span>
+                    <span class="text-xs text-gray-500">
+                      Deadline: {{ request.deadline.strftime('%b %d, %Y') }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+              <p class="mt-2 text-sm text-gray-600">
+                <i class="fas fa-user-injured text-gray-400 mr-1"></i>
+                {{ request.patient_details[:60] }}{% if request.patient_details|length > 60 %}...{% endif %}
+              </p>
+
+              <form method="POST" class="mt-3 pt-3 border-t">
+                <textarea name="admin_notes" rows="2" 
+                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500"
+                          placeholder="Add admin notes (optional)"></textarea>
+                <div class="flex space-x-2 mt-2">
+                  <button type="submit" formaction="{{ url_for('admin.manage_blood_request', request_id=request.id, action='accept') }}"
+                          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                    <i class="fas fa-check mr-1"></i>Accept
+                  </button>
+                  <button type="submit" formaction="{{ url_for('admin.manage_blood_request', request_id=request.id, action='reject') }}"
+                          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                    <i class="fas fa-times mr-1"></i>Reject
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-inbox text-gray-300 text-5xl mb-3"></i>
+            <p class="text-gray-500">No pending blood requests</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Pending Donations -->
+      <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-4">
+          <h2 class="text-lg font-semibold text-white">
+            <i class="fas fa-hand-holding-heart mr-2"></i>Pending Donations
+            {% if pending_donations %}
+            <span class="ml-2 px-2 py-0.5 text-xs bg-white text-blue-600 rounded-full">{{ pending_donations|length }}</span>
+            {% endif %}
+          </h2>
+        </div>
+        <div class="p-5">
+          {% if pending_donations %}
+          <div class="space-y-4">
+            {% for donation in pending_donations %}
+            <div class="border border-gray-100 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div class="flex justify-between items-start">
+                <div>
+                  <p class="font-semibold text-gray-800">
+                    {{ donation.donor.first_name }} {{ donation.donor.last_name }}
+                  </p>
+                  <p class="text-sm text-gray-600 mt-1">
+                    {{ donation.units }} unit(s) of <span class="font-bold text-red-600">{{ donation.blood_type }}</span>
+                  </p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Donation Date: {{ donation.donation_date.strftime('%b %d, %Y') }}
+                  </p>
+                </div>
+              </div>
+
+              <form method="POST" class="mt-3 pt-3 border-t">
+                <textarea name="admin_notes" rows="2" 
+                          class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                          placeholder="Add admin notes (optional)"></textarea>
+                <div class="flex space-x-2 mt-2">
+                  <button type="submit" formaction="{{ url_for('admin.manage_donation', donation_id=donation.id, action='accept') }}"
+                          class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm">
+                    <i class="fas fa-check mr-1"></i>Accept
+                  </button>
+                  <button type="submit" formaction="{{ url_for('admin.manage_donation', donation_id=donation.id, action='reject') }}"
+                          class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm">
+                    <i class="fas fa-times mr-1"></i>Reject
+                  </button>
+                </div>
+              </form>
+            </div>
+            {% endfor %}
+          </div>
+          {% else %}
+          <div class="text-center py-8">
+            <i class="fas fa-inbox text-gray-300 text-5xl mb-3"></i>
+            <p class="text-gray-500">No pending donations</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Blood Drives Management -->
+    <div class="mt-6 bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="bg-gradient-to-r from-purple-500 to-purple-600 px-6 py-4">
+        <h2 class="text-lg font-semibold text-white">
+          <i class="fas fa-calendar-alt mr-2"></i>Manage Blood Drives
+        </h2>
+      </div>
+      <div class="p-5">
+        {% if blood_drives %}
+        <div class="overflow-x-auto">
+          <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Title</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Location</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200">
+              {% for drive in blood_drives %}
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 font-medium text-gray-900">{{ drive.title }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ drive.location }}</td>
+                <td class="px-6 py-4 text-gray-600">{{ drive.start_date.strftime('%b %d, %Y') }}</td>
+                <td class="px-6 py-4">
+                  <span class="px-2 py-1 text-xs rounded-full 
+                    {% if drive.status == 'scheduled' %}bg-green-100 text-green-700
+                    {% elif drive.status == 'running' %}bg-yellow-100 text-yellow-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {{ drive.status }}
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <div class="flex space-x-3">
+                    <a href="{{ url_for('admin.edit_drive', drive_id=drive.id) }}" class="text-blue-600 hover:text-blue-800">
+                      <i class="fas fa-edit"></i> Edit
+                    </a>
+                    <form method="POST" action="{{ url_for('admin.delete_drive', drive_id=drive.id) }}" 
+                          onsubmit="return confirm('Delete this blood drive?');" class="inline">
+                      <button type="submit" class="text-red-600 hover:text-red-800">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                    </form>
+                  </div>
+                </td>
+              </table>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="text-center py-12">
+          <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <i class="fas fa-calendar-times text-gray-400 text-3xl"></i>
+          </div>
+          <p class="text-gray-500">No blood drives scheduled</p>
+          <a href="{{ url_for('admin.schedule_drive') }}" class="mt-3 inline-block text-red-600 hover:text-red-700 text-sm">
+            Schedule a blood drive →
+          </a>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

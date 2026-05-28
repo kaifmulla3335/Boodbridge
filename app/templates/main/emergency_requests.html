@@ -1,0 +1,186 @@
+{% extends "base.html" %} {% block content %}
+<div class="bg-gradient-to-br from-red-50 to-white py-16">
+  <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="text-center mb-12">
+      <div
+        class="inline-flex items-center justify-center w-20 h-20 bg-red-100 rounded-full mb-6 animate-pulse"
+      >
+        <i class="fas fa-ambulance text-red-600 text-3xl"></i>
+      </div>
+      <h1 class="text-4xl font-extrabold text-gray-900 sm:text-5xl mb-4">
+        Emergency <span class="text-red-600">Blood Request</span>
+      </h1>
+      <div class="w-24 h-1 bg-red-600 mx-auto rounded-full"></div>
+      <p class="mt-6 text-lg text-gray-600 max-w-2xl mx-auto">
+        Submit an emergency blood request to quickly find donors and save lives
+      </p>
+    </div>
+
+    <!-- Emergency Request Form -->
+    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
+      <div class="bg-red-600 px-8 py-6">
+        <h2 class="text-2xl font-bold text-white">
+          <i class="fas fa-exclamation-triangle mr-2"></i>Urgent Request Form
+        </h2>
+        <p class="text-red-100 mt-1">Please fill out all fields carefully</p>
+      </div>
+
+      <form
+        action="{{ url_for('main.submit_emergency_request') }}"
+        method="POST"
+        class="p-8 space-y-6"
+      >
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label
+              for="blood_type"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              <i class="fas fa-tint text-red-600 mr-1"></i>Blood Type Required
+            </label>
+            <select
+              id="blood_type"
+              name="blood_type"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            >
+              <option value="">Select blood type</option>
+              {% for blood_type in ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+',
+              'O-'] %}
+              <option value="{{ blood_type }}">{{ blood_type }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div>
+            <label
+              for="units_needed"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              <i class="fas fa-chart-simple text-red-600 mr-1"></i>Units Needed
+            </label>
+            <input
+              type="number"
+              name="units_needed"
+              id="units_needed"
+              min="1"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+
+          <div>
+            <label
+              for="priority"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              <i class="fas fa-flag text-red-600 mr-1"></i>Priority Level
+            </label>
+            <select
+              id="priority"
+              name="priority"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            >
+              <option value="">Select priority</option>
+              <option value="CRITICAL" class="text-red-600 font-semibold">
+                🔴 Critical - Immediate Need
+              </option>
+              <option value="HIGH" class="text-orange-600">
+                🟠 High - Within 24 Hours
+              </option>
+              <option value="MEDIUM" class="text-yellow-600">
+                🟡 Medium - Within 48 Hours
+              </option>
+              <option value="LOW" class="text-blue-600">
+                🔵 Low - Within 72 Hours
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label
+              for="deadline"
+              class="block text-sm font-semibold text-gray-700 mb-2"
+            >
+              <i class="fas fa-clock text-red-600 mr-1"></i>Required By
+            </label>
+            <input
+              type="datetime-local"
+              name="deadline"
+              id="deadline"
+              required
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            />
+          </div>
+        </div>
+
+        <div>
+          <label
+            for="patient_details"
+            class="block text-sm font-semibold text-gray-700 mb-2"
+          >
+            <i class="fas fa-user-injured text-red-600 mr-1"></i>Patient Details
+          </label>
+          <textarea
+            id="patient_details"
+            name="patient_details"
+            rows="4"
+            required
+            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+            placeholder="Please provide patient name, age, condition, hospital, ward number, and any other relevant details..."
+          ></textarea>
+        </div>
+
+        <div class="bg-red-50 rounded-lg p-4 border-l-4 border-red-500">
+          <div class="flex items-start">
+            <i class="fas fa-info-circle text-red-600 mt-0.5 mr-3"></i>
+            <div class="text-sm text-red-800">
+              <p class="font-semibold mb-1">Important Note:</p>
+              <p>
+                Emergency requests are immediately visible to all registered
+                donors in your area. Please provide accurate information to
+                ensure quick response.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="w-full flex justify-center items-center py-4 px-6 border border-transparent rounded-xl shadow-lg text-lg font-semibold text-white bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 transition-all duration-300 transform hover:scale-[1.02]"
+        >
+          <i class="fas fa-paper-plane mr-3 text-xl"></i>
+          Submit Emergency Request
+        </button>
+      </form>
+    </div>
+
+    <!-- Emergency Tips -->
+    <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="bg-white rounded-lg p-4 shadow-md">
+        <i class="fas fa-phone-alt text-red-600 text-2xl mb-2"></i>
+        <h4 class="font-semibold text-gray-800">Emergency Hotline</h4>
+        <p class="text-sm text-gray-600">
+          Call us directly for urgent cases: <strong>1-800-BLOOD-HELP</strong>
+        </p>
+      </div>
+      <div class="bg-white rounded-lg p-4 shadow-md">
+        <i class="fas fa-shield-alt text-red-600 text-2xl mb-2"></i>
+        <h4 class="font-semibold text-gray-800">Blood Safety</h4>
+        <p class="text-sm text-gray-600">
+          All donated blood is thoroughly screened and tested
+        </p>
+      </div>
+      <div class="bg-white rounded-lg p-4 shadow-md">
+        <i class="fas fa-truck text-red-600 text-2xl mb-2"></i>
+        <h4 class="font-semibold text-gray-800">24/7 Delivery</h4>
+        <p class="text-sm text-gray-600">
+          Emergency deliveries available round the clock
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
